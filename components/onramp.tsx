@@ -62,6 +62,7 @@ export default function Onramp() {
                   <div className="max-w-[450px] w-full mx-auto">
                     <CrossmintEmbeddedCheckout
                       orderId={orderId}
+                      // @ts-ignore
                       clientSecret={clientSecret}
                       payment={{
                         receiptEmail,
