@@ -17,6 +17,7 @@ export type CreateOrderRequest = {
 };
 
 export type CreateOrderResponse = {
+  clientSecret: string;
   order: {
   orderId: string;
   payment: {

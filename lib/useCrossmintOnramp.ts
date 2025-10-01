@@ -38,6 +38,7 @@ export function useCrossmintOnramp({
   const [txId, setTxId] = useState<string | null>(null);
   const [checkoutSession, setCheckoutSession] = useState<any | null>(null);
   const [checkoutPublicKey, setCheckoutPublicKey] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   const statusRef = useRef<OnrampStatus>(status);
   useEffect(() => {
@@ -65,6 +66,7 @@ export function useCrossmintOnramp({
       
       const orderData = data as CreateOrderResponse;
       setOrderId(orderData.order.orderId);
+      setClientSecret(orderData.clientSecret);
 
       const total = orderData.order.quote.totalPrice.amount;
       const lineItem = orderData.order.lineItems[0];
@@ -167,6 +169,8 @@ export function useCrossmintOnramp({
       effectiveAmount,
       txId,
     },
+    orderId,
+    clientSecret,
     createOrder,
     resetOrder,
     checkout: {
