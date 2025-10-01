@@ -30,7 +30,7 @@ export default function Onramp() {
       <div className="w-full max-w-md mt-10">
         <div className="bg-white rounded-3xl border shadow-lg overflow-hidden">
           <div className="p-6">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col">
               <UserTypeSelector
                 userType={userType}
                 onUserTypeChange={(newType, email) => {
@@ -56,7 +56,12 @@ export default function Onramp() {
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
-              {orderId && (
+              {orderId && (<>
+                <div>
+                  <p className="text-sm text-center">Use this card to test the payment process:</p>
+                  <p className="text-sm font-semibold filter-green text-center">4242 4242 4242 4242.</p>
+                </div>
+                <hr className="mt-4 mb-4" />
                 <CrossmintProvider apiKey={CLIENT_API_KEY!}>
                   <div className="max-w-[450px] w-full mx-auto">
                     <CrossmintEmbeddedCheckout
@@ -72,7 +77,7 @@ export default function Onramp() {
                     />
                   </div>
                 </CrossmintProvider>
-              )}
+              </>)}
             </div>
           </div>
         </div>
