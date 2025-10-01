@@ -50,7 +50,6 @@ export default function Onramp() {
                     error: order.error,
                     totalUsd: order.totalUsd,
                     effectiveAmount: order.effectiveAmount,
-                    txId: order.txId,
                   }}
                   onContinue={() => createOrder(amountUsd)}
                 />
