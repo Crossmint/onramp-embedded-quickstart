@@ -107,7 +107,7 @@ export default function FeatureHighlights() {
             <span>Contact sales</span>
           </a>
           <a
-            href="https://github.com/Crossmint/onramp-quickstart"
+            href="https://github.com/Crossmint/onramp-embedded-quickstart"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 text-white/80 hover:text-white focus:text-white visited:text-white/80 active:text-white transition-colors"
