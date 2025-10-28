@@ -32,7 +32,7 @@ Easily deploy the template to Vercel with the button below. You will need to set
 ## Setup
 1. Clone the repository and navigate to the project folder:
 ```bash
-git clone https://github.com/crossmint/onramp-embedded-quickstart.git && cd onramp-quickstart
+git clone https://github.com/crossmint/onramp-embedded-quickstart.git && cd onramp-embedded-quickstart
 ```
 
 2. Install all dependencies:
