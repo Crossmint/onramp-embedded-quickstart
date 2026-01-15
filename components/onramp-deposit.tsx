@@ -10,8 +10,12 @@ type Props = {
   order: Order;
   onContinue: () => void;
   children?: React.ReactNode;
+  userType?: "returning" | "new";
 };
 
+// This number should match with the value of the environment variable
+// ONRAMP_LIGHT_KYC_THRESHOLD_USD
+const LIGHT_KYC_THRESHOLD_NUMBER = 100;
 
 function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | null; totalUsd: string | null }) {
   if (effectiveAmount === null || totalUsd === null) return null;
@@ -56,7 +60,11 @@ export default function OnrampDeposit({
   order,
   onContinue,
   children,
+  userType,
 }: Props) {
+  const showKycMessage = userType === "new";
+  const isLightKyc = showKycMessage && Number(amountUsd) <= LIGHT_KYC_THRESHOLD_NUMBER;
+
   return (
     <div className="px-6">
       <h2 className="text-lg font-semibold text-center">Deposit</h2>
@@ -75,6 +83,16 @@ export default function OnrampDeposit({
           disabled={order.status !== "not-created"}
         />
       </div>
+
+      {showKycMessage && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 text-center">
+            {isLightKyc
+              ? "This amount will use the light KYC experience. Select more than $100 to try full KYC."
+              : "This amount will use the full KYC experience. Select less than $101 to try light KYC."}
+          </p>
+        </div>
+      )}
 
       <PricingInfo effectiveAmount={order.effectiveAmount} totalUsd={order.totalUsd} />
 

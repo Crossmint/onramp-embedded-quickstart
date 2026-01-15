@@ -52,6 +52,7 @@ export default function Onramp() {
                     effectiveAmount: order.effectiveAmount,
                   }}
                   onContinue={() => createOrder(amountUsd)}
+                  userType={userType}
                 />
               )}
 
