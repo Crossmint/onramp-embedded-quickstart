@@ -9,15 +9,7 @@ export type OnrampStatus =
   | "awaiting-payment"
   | "error";
 
-type UseCrossmintOnrampArgs = {
-  email: string;
-  walletAddress: string;
-};
-
-export function useCrossmintOnramp({
-  email,
-  walletAddress,
-}: UseCrossmintOnrampArgs) {
+export function useCrossmintOnramp() {
   const [status, setStatus] = useState<OnrampStatus>("not-created");
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +18,7 @@ export function useCrossmintOnramp({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   const createOrder = useCallback(
-    async (amountUsd: string) => {
+    async (amountUsd: string, email: string, walletAddress: string) => {
       setStatus("creating-order");
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -56,7 +48,7 @@ export function useCrossmintOnramp({
 
       setStatus("awaiting-payment");
     },
-    [email, walletAddress]
+    []
   );
 
   const resetOrder = useCallback(() => {

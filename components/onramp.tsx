@@ -11,7 +11,6 @@ if (CLIENT_API_KEY == null) {
   throw new Error("NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY is not set");
 }
 
-const USER_RECIPIENT_WALLET = "x4zyf8T6n6NVN3kBW6fmzBvNVAGuDE8mzmzqkSUUh3U";
 const DEFAULT_AMOUNT = "5.00";
 
 export default function Onramp() {
@@ -19,11 +18,10 @@ export default function Onramp() {
   const [receiptEmail, setReceiptEmail] = useState<string>("demos+onramp-existing-user@crossmint.com");
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
+  const [email, setEmail] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
 
-  const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp({
-    email: receiptEmail,
-    walletAddress: USER_RECIPIENT_WALLET,
-  });
+  const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp();
 
   return (
     <div className="flex items-center justify-center bg-gray-50 px-6 py-12 col-span-1 lg:col-span-3">
@@ -45,24 +43,23 @@ export default function Onramp() {
                 <OnrampDeposit
                   amountUsd={amountUsd}
                   setAmountUsd={setAmountUsd}
+                  email={email}
+                  setEmail={setEmail}
+                  walletAddress={walletAddress}
+                  setWalletAddress={setWalletAddress}
                   order={{
                     status: order.status,
                     error: order.error,
                     totalUsd: order.totalUsd,
                     effectiveAmount: order.effectiveAmount,
                   }}
-                  onContinue={() => createOrder(amountUsd)}
+                  onContinue={() => createOrder(amountUsd, email, walletAddress)}
                   userType={userType}
                 />
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
               {orderId && (<>
-                <div>
-                  <p className="text-sm text-center">Use this card to test the payment process:</p>
-                  <p className="text-sm font-semibold filter-green text-center">4242 4242 4242 4242.</p>
-                </div>
-                <hr className="mt-4 mb-4" />
                 <CrossmintProvider apiKey={CLIENT_API_KEY!}>
                   <div className="max-w-[450px] w-full mx-auto">
                     <CrossmintEmbeddedCheckout
@@ -70,7 +67,7 @@ export default function Onramp() {
                       // @ts-ignore
                       clientSecret={clientSecret}
                       payment={{
-                        receiptEmail,
+                        receiptEmail: email,
                         crypto: { enabled: false },
                         fiat: { enabled: true },
                         defaultMethod: "fiat",

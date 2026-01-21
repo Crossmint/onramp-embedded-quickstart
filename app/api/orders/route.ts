@@ -21,6 +21,22 @@ export async function POST(req: NextRequest) {
       walletAddress,
     } = body;
 
+    // Validate email
+    if (!receiptEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiptEmail)) {
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+    }
+
+    // Validate Solana wallet address (base58, 32-44 characters)
+    if (!walletAddress || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
+      return NextResponse.json({ error: "Invalid Solana wallet address" }, { status: 400 });
+    }
+
+    // Validate amount
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount < 1 || numAmount > 10000) {
+      return NextResponse.json({ error: "Amount must be between $1 and $10,000" }, { status: 400 });
+    }
+
     const tokenLocator =
       (CROSSMINT_ENV === "production" ? USDC_PROD : USDC_STAGING);
 

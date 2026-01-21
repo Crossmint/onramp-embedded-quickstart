@@ -7,6 +7,10 @@ import Tooltip from "@/components/tooltip";
 type Props = {
   amountUsd: string;
   setAmountUsd: (v: string) => void;
+  email: string;
+  setEmail: (v: string) => void;
+  walletAddress: string;
+  setWalletAddress: (v: string) => void;
   order: Order;
   onContinue: () => void;
   children?: React.ReactNode;
@@ -57,6 +61,10 @@ function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | 
 export default function OnrampDeposit({
   amountUsd,
   setAmountUsd,
+  email,
+  setEmail,
+  walletAddress,
+  setWalletAddress,
   order,
   onContinue,
   children,
@@ -93,6 +101,40 @@ export default function OnrampDeposit({
           </p>
         </div>
       )}
+
+      <div className="mt-6 space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            placeholder="your@email.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={order.status !== "not-created"}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="walletAddress" className="block text-sm font-medium text-gray-700 mb-1">
+            Solana Wallet Address
+          </label>
+          <input
+            id="walletAddress"
+            type="text"
+            required
+            placeholder="Enter Solana wallet address"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+            value={walletAddress}
+            onChange={(e) => setWalletAddress(e.target.value)}
+            disabled={order.status !== "not-created"}
+          />
+        </div>
+      </div>
 
       <PricingInfo effectiveAmount={order.effectiveAmount} totalUsd={order.totalUsd} />
 
