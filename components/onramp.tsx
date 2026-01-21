@@ -4,7 +4,6 @@ import { CrossmintProvider, CrossmintEmbeddedCheckout } from "@crossmint/client-
 import OnrampDeposit from "@/components/onramp-deposit";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
 import { useState } from "react";
-import UserTypeSelector from "@/components/user-type-selector";
 
 const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY;
 if (CLIENT_API_KEY == null) {
@@ -14,14 +13,11 @@ if (CLIENT_API_KEY == null) {
 const DEFAULT_AMOUNT = "5.00";
 
 export default function Onramp() {
-  const [userType, setUserType] = useState<"returning" | "new">("returning");
-  const [receiptEmail, setReceiptEmail] = useState<string>("demos+onramp-existing-user@crossmint.com");
-
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
   const [email, setEmail] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
 
-  const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp();
+  const { order, createOrder, orderId, clientSecret } = useCrossmintOnramp();
 
   return (
     <div className="flex items-center justify-center bg-gray-50 px-6 py-12 col-span-1 lg:col-span-3">
@@ -29,15 +25,6 @@ export default function Onramp() {
         <div className="bg-white rounded-3xl border shadow-lg overflow-hidden">
           <div className="p-6">
             <div className="flex flex-col">
-              <UserTypeSelector
-                userType={userType}
-                onUserTypeChange={(newType, email) => {
-                  setUserType(newType);
-                  setReceiptEmail(email);
-                  resetOrder();
-                }}
-              />
-              
               {/* Step 1: Create order */}
               {orderId == null && (
                 <OnrampDeposit
@@ -54,7 +41,6 @@ export default function Onramp() {
                     effectiveAmount: order.effectiveAmount,
                   }}
                   onContinue={() => createOrder(amountUsd, email, walletAddress)}
-                  userType={userType}
                 />
               )}
 

@@ -70,7 +70,6 @@ export function useCrossmintOnramp() {
     orderId,
     clientSecret,
     createOrder,
-    resetOrder,
   } as const;
 }
 

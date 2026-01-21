@@ -14,7 +14,6 @@ type Props = {
   order: Order;
   onContinue: () => void;
   children?: React.ReactNode;
-  userType?: "returning" | "new";
 };
 
 // This number should match with the value of the environment variable
@@ -68,10 +67,8 @@ export default function OnrampDeposit({
   order,
   onContinue,
   children,
-  userType,
 }: Props) {
-  const showKycMessage = userType === "new";
-  const isLightKyc = showKycMessage && Number(amountUsd) <= LIGHT_KYC_THRESHOLD_NUMBER;
+  const isLightKyc = Number(amountUsd) <= LIGHT_KYC_THRESHOLD_NUMBER;
 
   return (
     <div className="px-6">
@@ -92,15 +89,13 @@ export default function OnrampDeposit({
         />
       </div>
 
-      {showKycMessage && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800 text-center">
-            {isLightKyc
-              ? "This amount will use the light KYC experience. Select more than $100 to try full KYC."
-              : "This amount will use the full KYC experience. Select less than $101 to try light KYC."}
-          </p>
-        </div>
-      )}
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-800 text-center">
+          {isLightKyc
+            ? "This amount will use the light KYC experience. Select more than $100 to try full KYC."
+            : "This amount will use the full KYC experience. Select less than $101 to try light KYC."}
+        </p>
+      </div>
 
       <div className="mt-6 space-y-4">
         <div>
