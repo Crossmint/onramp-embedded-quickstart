@@ -3,6 +3,11 @@
 import { useCallback, useState } from "react";
 import { CreateOrderResponse, ApiErrorResponse } from "./types";
 
+const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY!;
+const CROSSMINT_ENV = process.env.NEXT_PUBLIC_CROSSMINT_ENV || "staging";
+const USDC_STAGING = "solana:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
+const USDC_PROD = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
 export type OnrampStatus =
   | "not-created"
   | "creating-order"
@@ -28,15 +33,38 @@ export function useCrossmintOnramp({
   const createOrder = useCallback(
     async (amountUsd: string) => {
       setStatus("creating-order");
-      const res = await fetch("/api/orders", {
+
+      const baseUrl = CROSSMINT_ENV === "production"
+        ? "https://www.crossmint.com"
+        : "https://staging.crossmint.com";
+      const tokenLocator = CROSSMINT_ENV === "production" ? USDC_PROD : USDC_STAGING;
+
+      const res = await fetch(`${baseUrl}/api/2022-06-09/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": CLIENT_API_KEY,
+        },
         body: JSON.stringify({
-          amount: amountUsd,
-          receiptEmail: email,
-          walletAddress,
+          lineItems: [
+            {
+              tokenLocator,
+              executionParameters: {
+                mode: "exact-in",
+                amount: amountUsd,
+              },
+            },
+          ],
+          payment: {
+            method: "card",
+            receiptEmail: email,
+          },
+          recipient: {
+            walletAddress,
+          },
         }),
       });
+
       const data: CreateOrderResponse | ApiErrorResponse = await res.json();
       if (!res.ok) {
         setError((data as ApiErrorResponse).error);
@@ -81,5 +109,3 @@ export function useCrossmintOnramp({
     resetOrder,
   } as const;
 }
-
-

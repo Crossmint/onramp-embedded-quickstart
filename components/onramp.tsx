@@ -5,13 +5,14 @@ import OnrampDeposit from "@/components/onramp-deposit";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
 import { useState } from "react";
 import UserTypeSelector from "@/components/user-type-selector";
+import PaymentSuccessModal from "@/components/payment-success-modal";
 
 const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY;
 if (CLIENT_API_KEY == null) {
   throw new Error("NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY is not set");
 }
 
-const USER_RECIPIENT_WALLET = "x4zyf8T6n6NVN3kBW6fmzBvNVAGuDE8mzmzqkSUUh3U";
+const USER_RECIPIENT_WALLET = "HEDZpt7fh7PsBVyYjTPBno3JSRN6TE8kBY3Zm2UWEszU"; // Crossmint-managed wallet for demos+onramp-existing-user@crossmint.com
 const DEFAULT_AMOUNT = "5.00";
 
 export default function Onramp() {
@@ -19,6 +20,7 @@ export default function Onramp() {
   const [receiptEmail, setReceiptEmail] = useState<string>("demos+onramp-existing-user@crossmint.com");
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp({
     email: receiptEmail,
@@ -39,7 +41,7 @@ export default function Onramp() {
                   resetOrder();
                 }}
               />
-              
+
               {/* Step 1: Create order */}
               {orderId == null && (
                 <OnrampDeposit
@@ -75,6 +77,12 @@ export default function Onramp() {
                         fiat: { enabled: true },
                         defaultMethod: "fiat",
                       }}
+                      // @ts-ignore
+                      onEvent={(event) => {
+                        if (event.type === "payment:succeeded") {
+                          setShowSuccessModal(true);
+                        }
+                      }}
                     />
                   </div>
                 </CrossmintProvider>
@@ -83,6 +91,16 @@ export default function Onramp() {
           </div>
         </div>
       </div>
+      <PaymentSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          resetOrder();
+          setAmountUsd(DEFAULT_AMOUNT);
+        }}
+        amount={amountUsd}
+        walletAddress={USER_RECIPIENT_WALLET}
+      />
     </div>
   );
 }
