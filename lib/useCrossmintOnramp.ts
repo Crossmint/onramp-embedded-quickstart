@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { CreateOrderResponse, ApiErrorResponse } from "./types";
+import { CreateOrderResponse } from "./types";
+import { createCrossmintOrder } from "./actions";
 
 export type OnrampStatus =
   | "not-created"
@@ -28,18 +29,11 @@ export function useCrossmintOnramp({
   const createOrder = useCallback(
     async (amountUsd: string) => {
       setStatus("creating-order");
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: amountUsd,
-          receiptEmail: email,
-          walletAddress,
-        }),
-      });
-      const data: CreateOrderResponse | ApiErrorResponse = await res.json();
-      if (!res.ok) {
-        setError((data as ApiErrorResponse).error);
+
+      const data = await createCrossmintOrder(amountUsd, email, walletAddress);
+
+      if ("error" in data) {
+        setError(data.error);
         setStatus("error");
         return;
       }
@@ -81,5 +75,3 @@ export function useCrossmintOnramp({
     resetOrder,
   } as const;
 }
-
-

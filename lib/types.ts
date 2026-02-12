@@ -1,7 +1,5 @@
-import { OnrampStatus } from "./useCrossmintOnramp";
-
 export type Order = {
-  status: OnrampStatus;
+  status: "not-created" | "creating-order" | "awaiting-payment" | "error";
   error: string | null;
   totalUsd: string | null;
   effectiveAmount: string | null;
