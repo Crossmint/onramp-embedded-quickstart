@@ -2,10 +2,10 @@
 
 import { CrossmintProvider, CrossmintEmbeddedCheckout } from "@crossmint/client-sdk-react-ui";
 import OnrampDeposit from "@/components/onramp-deposit";
+import OnrampSuccess from "@/components/onramp-success";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import UserTypeSelector from "@/components/user-type-selector";
-import PaymentSuccessModal from "@/components/payment-success-modal";
 
 const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY;
 if (CLIENT_API_KEY == null) {
@@ -20,12 +20,30 @@ export default function Onramp() {
   const [receiptEmail, setReceiptEmail] = useState<string>("demos+onramp-existing-user@crossmint.com");
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [txId, setTxId] = useState<string | undefined>();
 
   const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp({
     email: receiptEmail,
     walletAddress: USER_RECIPIENT_WALLET,
   });
+
+  // Listen for Crossmint iframe postMessage events to detect order completion
+  const handleMessage = useCallback((event: MessageEvent) => {
+    const data = event.data;
+    if (data?.event === "order:updated" && data?.data?.order?.phase === "completed") {
+      const lineItems = data.data.order.lineItems;
+      const deliveryTxId = lineItems?.[0]?.delivery?.txId;
+      if (deliveryTxId) setTxId(deliveryTxId);
+      setShowSuccess(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!orderId) return;
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [orderId, handleMessage]);
 
   return (
     <div className="flex items-center justify-center bg-gray-50 px-6 py-12 col-span-1 lg:col-span-3">
@@ -43,7 +61,7 @@ export default function Onramp() {
               />
 
               {/* Step 1: Create order */}
-              {orderId == null && (
+              {orderId == null && !showSuccess && (
                 <OnrampDeposit
                   amountUsd={amountUsd}
                   setAmountUsd={setAmountUsd}
@@ -59,7 +77,7 @@ export default function Onramp() {
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
-              {orderId && (<>
+              {orderId && !showSuccess && (<>
                 <div>
                   <p className="text-sm text-center">Use this card to test the payment process:</p>
                   <p className="text-sm font-semibold filter-green text-center">4242 4242 4242 4242.</p>
@@ -77,30 +95,30 @@ export default function Onramp() {
                         fiat: { enabled: true },
                         defaultMethod: "fiat",
                       }}
-                      // @ts-ignore
-                      onEvent={(event) => {
-                        if (event.type === "payment:succeeded") {
-                          setShowSuccessModal(true);
-                        }
-                      }}
                     />
                   </div>
                 </CrossmintProvider>
               </>)}
+
+              {/* Step 3: Custom success screen (replaces Crossmint's built-in one) */}
+              {showSuccess && (
+                <OnrampSuccess
+                  totalUsd={order.totalUsd ?? amountUsd}
+                  effectiveAmount={order.effectiveAmount ?? amountUsd}
+                  walletAddress={USER_RECIPIENT_WALLET}
+                  txId={txId}
+                  onStartNew={() => {
+                    setShowSuccess(false);
+                    setTxId(undefined);
+                    resetOrder();
+                    setAmountUsd(DEFAULT_AMOUNT);
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
       </div>
-      <PaymentSuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => {
-          setShowSuccessModal(false);
-          resetOrder();
-          setAmountUsd(DEFAULT_AMOUNT);
-        }}
-        amount={amountUsd}
-        walletAddress={USER_RECIPIENT_WALLET}
-      />
     </div>
   );
 }

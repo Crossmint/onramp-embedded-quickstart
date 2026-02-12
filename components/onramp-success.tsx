@@ -1,94 +1,133 @@
 "use client";
 
 type OnrampSuccessProps = {
-  orderId: string;
   totalUsd: string;
   effectiveAmount: string;
   walletAddress: string;
+  txId?: string;
   onStartNew: () => void;
 };
 
+function formatUsdc(amount: string): string {
+  const num = parseFloat(amount);
+  if (isNaN(num)) return amount;
+  return num.toFixed(2);
+}
+
+function truncateAddress(address: string): string {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 export default function OnrampSuccess({
-  orderId,
   totalUsd,
   effectiveAmount,
   walletAddress,
+  txId,
   onStartNew,
 }: OnrampSuccessProps) {
+  const explorerUrl = txId
+    ? `https://explorer.solana.com/tx/${txId}?cluster=devnet`
+    : `https://explorer.solana.com/address/${walletAddress}?cluster=devnet`;
+  const formattedUsdc = formatUsdc(effectiveAmount);
+  const formattedUsd = formatUsdc(totalUsd);
+
   return (
-    <div className="space-y-6">
-      {/* Success Icon and Message */}
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+    <div className="flex flex-col items-center py-2">
+      {/* Animated checkmark */}
+      <div className="relative mb-5">
+        <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center animate-in zoom-in duration-500">
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Title */}
+      <h2 className="text-lg font-semibold text-gray-900 mb-1">
+        Payment successful
+      </h2>
+      <p className="text-sm text-gray-500 mb-6">
+        Your USDC has been delivered
+      </p>
+
+      {/* Amount display */}
+      <div className="w-full bg-gray-50 rounded-xl p-5 mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-gray-500">You paid</span>
+          <span className="text-sm font-medium text-gray-900">
+            ${formattedUsd}
+          </span>
+        </div>
+        <div className="border-t border-gray-200 my-3" />
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-gray-500">You received</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+              <span className="text-[8px] font-bold text-white">$</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">
+              {formattedUsdc} USDC
+            </span>
+          </div>
+        </div>
+        <div className="border-t border-gray-200 my-3" />
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">Delivered to</span>
+          <a
+            href={explorerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-mono text-green-600 hover:text-green-700 hover:underline transition-colors"
+          >
+            {truncateAddress(walletAddress)}
+          </a>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="w-full space-y-2.5">
+        <a
+          href={explorerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-full py-2.5 px-4 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+        >
+          View on Explorer
           <svg
-            className="w-8 h-8 text-green-600"
+            className="w-3.5 h-3.5 ml-1.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            strokeWidth={2}
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
             />
           </svg>
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          Payment Successful!
-        </h2>
-        <p className="text-sm text-gray-600 mt-2">
-          Your USDC has been sent to your wallet
-        </p>
+        </a>
+
+        <button
+          onClick={onStartNew}
+          className="w-full py-2.5 px-4 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          New transaction
+        </button>
       </div>
-
-      {/* Transaction Details */}
-      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Order ID</span>
-          <span className="text-sm font-mono text-gray-900 break-all text-right max-w-[60%]">
-            {orderId}
-          </span>
-        </div>
-
-        <div className="border-t border-gray-200 pt-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Amount Paid</span>
-            <span className="text-sm font-semibold text-gray-900">
-              ${totalUsd} USD
-            </span>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">USDC Received</span>
-          <span className="text-sm font-semibold text-green-600">
-            {effectiveAmount} USDC
-          </span>
-        </div>
-
-        <div className="border-t border-gray-200 pt-3">
-          <div className="flex flex-col space-y-1">
-            <span className="text-sm text-gray-600">Destination Wallet</span>
-            <span className="text-xs font-mono text-gray-900 break-all bg-white px-2 py-1 rounded border border-gray-200">
-              {walletAddress}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Start New Transaction Button */}
-      <button
-        onClick={onStartNew}
-        className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
-      >
-        Start New Transaction
-      </button>
-
-      {/* Optional: View on Explorer */}
-      <p className="text-center text-xs text-gray-500">
-        Your transaction will appear on the Solana blockchain shortly
-      </p>
     </div>
   );
 }
