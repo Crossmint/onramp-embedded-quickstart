@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Order } from "@/lib/types";
 import Tooltip from "@/components/tooltip";
+import { validateDepositForm, type DepositFormErrors } from "@/lib/validation";
 
 type Props = {
   amountUsd: string;
@@ -69,6 +70,24 @@ export default function OnrampDeposit({
   children,
 }: Props) {
   const isLightKyc = Number(amountUsd) <= LIGHT_KYC_THRESHOLD_NUMBER;
+  const [errors, setErrors] = useState<DepositFormErrors>({});
+  const [touched, setTouched] = useState<{ email?: boolean; walletAddress?: boolean }>({});
+
+  const handleBlur = (field: "email" | "walletAddress") => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const validationErrors = validateDepositForm(email, walletAddress);
+    setErrors(validationErrors);
+  };
+
+  const handleContinue = () => {
+    const validationErrors = validateDepositForm(email, walletAddress);
+    setErrors(validationErrors);
+    setTouched({ email: true, walletAddress: true });
+    if (Object.keys(validationErrors).length > 0) return;
+    onContinue();
+  };
+
+  const hasErrors = Object.keys(errors).length > 0;
 
   return (
     <div className="px-6">
@@ -107,11 +126,23 @@ export default function OnrampDeposit({
             type="email"
             required
             placeholder="your@email.com"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+            className={`w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black ${
+              touched.email && errors.email ? "border-red-500" : "border-gray-300"
+            }`}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (touched.email) {
+                const validationErrors = validateDepositForm(e.target.value, walletAddress);
+                setErrors(validationErrors);
+              }
+            }}
+            onBlur={() => handleBlur("email")}
             disabled={order.status !== "not-created"}
           />
+          {touched.email && errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
         </div>
 
         <div>
@@ -123,11 +154,23 @@ export default function OnrampDeposit({
             type="text"
             required
             placeholder="Enter Solana wallet address"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+            className={`w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black ${
+              touched.walletAddress && errors.walletAddress ? "border-red-500" : "border-gray-300"
+            }`}
             value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
+            onChange={(e) => {
+              setWalletAddress(e.target.value);
+              if (touched.walletAddress) {
+                const validationErrors = validateDepositForm(email, e.target.value);
+                setErrors(validationErrors);
+              }
+            }}
+            onBlur={() => handleBlur("walletAddress")}
             disabled={order.status !== "not-created"}
           />
+          {touched.walletAddress && errors.walletAddress && (
+            <p className="mt-1 text-sm text-red-600">{errors.walletAddress}</p>
+          )}
         </div>
       </div>
 
@@ -137,8 +180,8 @@ export default function OnrampDeposit({
         <div className="mt-6">
           <button
             className="bg-black text-white rounded-full px-5 py-2 text-sm w-full disabled:opacity-50"
-            onClick={onContinue}
-            disabled={order.status === "creating-order"}
+            onClick={handleContinue}
+            disabled={order.status === "creating-order" || hasErrors}
           >
             {order.status === "creating-order" ? "Creating order..." : "Continue"}
           </button>

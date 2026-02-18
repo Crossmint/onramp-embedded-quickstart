@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod/v4";
+import { emailSchema, solanaAddressSchema } from "@/lib/validation";
 
 const CROSSMINT_SERVER_SIDE_API_KEY = process.env.CROSSMINT_SERVER_SIDE_API_KEY as string;
 const CROSSMINT_ENV = process.env.CROSSMINT_ENV || "staging";
 const USDC_STAGING = "solana:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 const USDC_PROD = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
+const orderRequestSchema = z.object({
+  amount: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 1 && num <= 10000;
+  }, "Amount must be between $1 and $10,000"),
+  receiptEmail: emailSchema,
+  walletAddress: solanaAddressSchema,
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,27 +26,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const {
-      amount,
-      receiptEmail,
-      walletAddress,
-    } = body;
-
-    // Validate email
-    if (!receiptEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiptEmail)) {
-      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+    const parsed = orderRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message ?? "Invalid request";
+      return NextResponse.json({ error: firstError }, { status: 400 });
     }
 
-    // Validate Solana wallet address (base58, 32-44 characters)
-    if (!walletAddress || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
-      return NextResponse.json({ error: "Invalid Solana wallet address" }, { status: 400 });
-    }
-
-    // Validate amount
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount < 1 || numAmount > 10000) {
-      return NextResponse.json({ error: "Amount must be between $1 and $10,000" }, { status: 400 });
-    }
+    const { amount, receiptEmail, walletAddress } = parsed.data;
 
     const tokenLocator =
       (CROSSMINT_ENV === "production" ? USDC_PROD : USDC_STAGING);
