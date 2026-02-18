@@ -20,6 +20,20 @@ export function useCrossmintOnramp() {
   const createOrder = useCallback(
     async (amountUsd: string, email: string, walletAddress: string) => {
       setStatus("creating-order");
+
+      // Link wallet before creating the order
+      const linkRes = await fetch("/api/link-wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, walletAddress }),
+      });
+      if (!linkRes.ok) {
+        const linkData = await linkRes.json();
+        setError(linkData.error || "Failed to link wallet");
+        setStatus("error");
+        return;
+      }
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
