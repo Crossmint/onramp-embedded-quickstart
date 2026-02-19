@@ -20,7 +20,7 @@ export async function linkWallet(
   const userLocator = `email:${email}`;
 
   const res = await fetch(
-    `${baseUrl}/api/2025-06-09/users/${encodeURIComponent(userLocator)}/linked-wallets/${walletAddress}`,
+    `${baseUrl}/api/2025-06-09/users/${encodeURIComponent(userLocator)}/linked-wallets/${encodeURIComponent(walletAddress)}`,
     {
       method: "PUT",
       headers: {
