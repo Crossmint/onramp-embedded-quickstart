@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { CreateOrderResponse } from "./types";
-import { createCrossmintOrder } from "./actions";
+import { linkWallet, createCrossmintOrder } from "./actions";
 
 export type OnrampStatus =
   | "not-created"
@@ -29,6 +29,13 @@ export function useCrossmintOnramp({
   const createOrder = useCallback(
     async (amountUsd: string) => {
       setStatus("creating-order");
+
+      const linkResult = await linkWallet(email, walletAddress);
+      if (linkResult && "error" in linkResult) {
+        setError(linkResult.error);
+        setStatus("error");
+        return;
+      }
 
       const data = await createCrossmintOrder(amountUsd, email, walletAddress);
 
