@@ -3,7 +3,6 @@
 import { CreateOrderResponse, ApiErrorResponse } from "./types";
 
 const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY!;
-const SERVER_API_KEY = process.env.CROSSMINT_SERVER_SIDE_API_KEY!;
 const CROSSMINT_ENV = process.env.NEXT_PUBLIC_CROSSMINT_ENV || "staging";
 const USDC_STAGING = "solana:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 const USDC_PROD = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -25,7 +24,7 @@ export async function linkWallet(
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": SERVER_API_KEY,
+        "x-api-key": CLIENT_API_KEY,
       },
       body: JSON.stringify({
         chainType: "solana",
