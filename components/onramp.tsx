@@ -12,7 +12,7 @@ if (CLIENT_API_KEY == null) {
   throw new Error("NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY is not set");
 }
 
-const USER_RECIPIENT_WALLET = "HEDZpt7fh7PsBVyYjTPBno3JSRN6TE8kBY3Zm2UWEszU"; // Crossmint-managed wallet for demos+onramp-existing-user@crossmint.com
+const USER_RECIPIENT_WALLET = "GBmPTj6S4vvLV4xpYpRce1nnbR3NPyQUT4ZzxgPWt2aS"; // external wallet for demos+onramp-existing-user@crossmint.com
 const DEFAULT_AMOUNT = "5.00";
 
 export default function Onramp() {
