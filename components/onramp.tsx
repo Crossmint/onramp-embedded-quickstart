@@ -6,18 +6,20 @@ import OnrampSuccess from "@/components/onramp-success";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
 import { useState, useEffect, useCallback } from "react";
 import UserTypeSelector from "@/components/user-type-selector";
+import { Keypair } from "@solana/web3.js";
 
 const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY;
 if (CLIENT_API_KEY == null) {
   throw new Error("NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY is not set");
 }
 
-const USER_RECIPIENT_WALLET = "GBmPTj6S4vvLV4xpYpRce1nnbR3NPyQUT4ZzxgPWt2aS"; // external wallet for demos+onramp-existing-user@crossmint.com
+const RETURNING_USER_RECIPIENT_WALLET = "GBmPTj6S4vvLV4xpYpRce1nnbR3NPyQUT4ZzxgPWt2aS";
 const DEFAULT_AMOUNT = "5.00";
 
 export default function Onramp() {
   const [userType, setUserType] = useState<"returning" | "new">("returning");
   const [receiptEmail, setReceiptEmail] = useState<string>("demos+onramp-existing-user@crossmint.com");
+  const [recipientWalletAddress, setRecipientWalletAddress] = useState<string>(RETURNING_USER_RECIPIENT_WALLET);
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -25,7 +27,7 @@ export default function Onramp() {
 
   const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp({
     email: receiptEmail,
-    walletAddress: USER_RECIPIENT_WALLET,
+    walletAddress: recipientWalletAddress,
   });
 
   // Listen for Crossmint iframe postMessage events to detect order completion
@@ -56,6 +58,12 @@ export default function Onramp() {
                 onUserTypeChange={(newType, email) => {
                   setUserType(newType);
                   setReceiptEmail(email);
+                  if (newType === "new") {
+                    const wallet = Keypair.generate();
+                    setRecipientWalletAddress(wallet.publicKey.toBase58());
+                  } else {
+                    setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
+                  }
                   resetOrder();
                 }}
               />
@@ -105,13 +113,16 @@ export default function Onramp() {
                 <OnrampSuccess
                   totalUsd={order.totalUsd ?? amountUsd}
                   effectiveAmount={order.effectiveAmount ?? amountUsd}
-                  walletAddress={USER_RECIPIENT_WALLET}
+                  walletAddress={recipientWalletAddress}
                   txId={txId}
                   onStartNew={() => {
                     setShowSuccess(false);
                     setTxId(undefined);
                     resetOrder();
                     setAmountUsd(DEFAULT_AMOUNT);
+                    setUserType("returning");
+                    setReceiptEmail("demos+onramp-existing-user@crossmint.com");
+                    setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
                   }}
                 />
               )}
