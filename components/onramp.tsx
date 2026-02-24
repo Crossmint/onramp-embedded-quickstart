@@ -123,6 +123,7 @@ export default function Onramp() {
                     setUserType("returning");
                     setReceiptEmail("demos+onramp-existing-user@crossmint.com");
                     setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
+                  }}
                 />
               )}
             </div>
