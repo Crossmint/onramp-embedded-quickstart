@@ -6,7 +6,7 @@ const CROSSMINT_ENV = process.env.CROSSMINT_ENV || "staging";
 
 export async function GET(
   _req: Request,
-  context: { params: { orderId: string } },
+  { params }: { params: Promise<{ orderId: string }> },
 ) {
   try {
     if (!CROSSMINT_SERVER_SIDE_API_KEY) {
@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const { orderId } = context?.params as { orderId: string };
+    const { orderId } = await params;
     const baseUrl =
       CROSSMINT_ENV === "production"
         ? "https://www.crossmint.com"
