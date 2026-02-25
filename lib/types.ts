@@ -1,4 +1,4 @@
-import { OnrampStatus } from "./useCrossmintOnramp";
+import type { OnrampStatus } from "./useCrossmintOnramp";
 
 export type Order = {
   status: OnrampStatus;
@@ -36,5 +36,5 @@ export type CreateOrderResponse = {
 
 export type ApiErrorResponse = {
   error: string;
-  details?: any;
+  details?: unknown;
 };

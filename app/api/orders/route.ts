@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v4";
-import { emailSchema, solanaAddressSchema } from "@/lib/validation";
+import { emailSchema, stellarAddressSchema } from "@/lib/validation";
 
 const CROSSMINT_SERVER_SIDE_API_KEY = process.env.CROSSMINT_SERVER_SIDE_API_KEY as string;
 const CROSSMINT_ENV = process.env.CROSSMINT_ENV || "staging";
-const USDC_STAGING = "solana:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
-const USDC_PROD = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const USDC_STAGING = "stellar:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
+const USDC_PROD = "stellar:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
 
 const orderRequestSchema = z.object({
   amount: z.string().refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num >= 1 && num <= 10000;
+    const num = Number.parseFloat(val);
+    return !Number.isNaN(num) && num >= 1 && num <= 10000;
   }, "Amount must be between $1 and $10,000"),
   receiptEmail: emailSchema,
-  walletAddress: solanaAddressSchema,
+  walletAddress: stellarAddressSchema,
 });
 
 export async function POST(req: NextRequest) {
@@ -76,9 +76,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Unexpected error creating order", details: error?.message },
+      { error: "Unexpected error creating order", details: message },
       { status: 500 }
     );
   }

@@ -2,16 +2,16 @@ import { z } from "zod/v4";
 
 export const emailSchema = z.email("Please enter a valid email address");
 
-export const solanaAddressSchema = z
+export const stellarAddressSchema = z
   .string()
   .regex(
-    /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
-    "Please enter a valid Solana wallet address"
+    /^G[A-Z2-7]{55}$/,
+    "Please enter a valid Stellar wallet address"
   );
 
 export const depositFormSchema = z.object({
   email: emailSchema,
-  walletAddress: solanaAddressSchema,
+  walletAddress: stellarAddressSchema,
 });
 
 export type DepositFormErrors = {

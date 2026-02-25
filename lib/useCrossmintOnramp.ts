@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { CreateOrderResponse, ApiErrorResponse } from "./types";
+import type { CreateOrderResponse, ApiErrorResponse } from "./types";
 
 export type OnrampStatus =
   | "not-created"

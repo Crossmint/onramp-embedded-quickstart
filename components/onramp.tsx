@@ -5,7 +5,7 @@ import OnrampDeposit from "@/components/onramp-deposit";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
 import { useState } from "react";
 
-const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY;
+const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY ?? "";
 if (CLIENT_API_KEY == null) {
   throw new Error("NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY is not set");
 }
@@ -45,8 +45,8 @@ export default function Onramp() {
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
-              {orderId && (<>
-                <CrossmintProvider apiKey={CLIENT_API_KEY!}>
+              {orderId && (
+                <CrossmintProvider apiKey={CLIENT_API_KEY}>
                   <div className="max-w-[450px] w-full mx-auto">
                     <CrossmintEmbeddedCheckout
                       orderId={orderId}
@@ -61,7 +61,7 @@ export default function Onramp() {
                     />
                   </div>
                 </CrossmintProvider>
-              </>)}
+              )}
             </div>
           </div>
         </div>

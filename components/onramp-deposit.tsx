@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Order } from "@/lib/types";
+import { type ReactNode, useState } from "react";
+import type { Order } from "@/lib/types";
 import Tooltip from "@/components/tooltip";
 import { validateDepositForm, type DepositFormErrors } from "@/lib/validation";
 
@@ -14,7 +14,7 @@ type Props = {
   setWalletAddress: (v: string) => void;
   order: Order;
   onContinue: () => void;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 // This number should match with the value of the environment variable
@@ -24,8 +24,8 @@ const LIGHT_KYC_THRESHOLD_NUMBER = 100;
 function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | null; totalUsd: string | null }) {
   if (effectiveAmount === null || totalUsd === null) return null;
 
-  const addedToBalance = parseFloat(effectiveAmount);
-  const totalAmountUsd = parseFloat(totalUsd);
+  const addedToBalance = Number.parseFloat(effectiveAmount);
+  const totalAmountUsd = Number.parseFloat(totalUsd);
   const feesUsd = totalAmountUsd - addedToBalance;
 
   return (
@@ -39,7 +39,7 @@ function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | 
           <span className="text-gray-600 text-sm">Fees</span>
           <div className="flex items-center gap-2">
             {feesUsd <= 0.01 && (
-              <Tooltip 
+              <Tooltip
                 content="No fees in staging. Contact sales to discuss rates for production."
                 className="text-xs w-5 h-5 inline-flex items-center justify-center rounded-full border border-gray-300 text-gray-600 cursor-default"
               >
@@ -126,9 +126,8 @@ export default function OnrampDeposit({
             type="email"
             required
             placeholder="your@email.com"
-            className={`w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black ${
-              touched.email && errors.email ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black ${touched.email && errors.email ? "border-red-500" : "border-gray-300"
+              }`}
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -147,16 +146,15 @@ export default function OnrampDeposit({
 
         <div>
           <label htmlFor="walletAddress" className="block text-sm font-medium text-gray-700 mb-1">
-            Solana Wallet Address
+            Stellar Wallet Address
           </label>
           <input
             id="walletAddress"
             type="text"
             required
-            placeholder="Enter Solana wallet address"
-            className={`w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black ${
-              touched.walletAddress && errors.walletAddress ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="Enter Stellar wallet address"
+            className={`w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-black ${touched.walletAddress && errors.walletAddress ? "border-red-500" : "border-gray-300"
+              }`}
             value={walletAddress}
             onChange={(e) => {
               setWalletAddress(e.target.value);
@@ -179,6 +177,7 @@ export default function OnrampDeposit({
       {order.totalUsd == null && (
         <div className="mt-6">
           <button
+            type="button"
             className="bg-black text-white rounded-full px-5 py-2 text-sm w-full disabled:opacity-50"
             onClick={handleContinue}
             disabled={order.status === "creating-order" || hasErrors}

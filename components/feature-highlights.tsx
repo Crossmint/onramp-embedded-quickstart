@@ -56,7 +56,7 @@ export default function FeatureHighlights() {
           "absolute rounded-[20px] inset-0 bg-black/40 transition-opacity duration-600 ease-out",
           showFeatures ? "opacity-100" : "opacity-0"
         )}
-      ></div>
+      />
 
       <div className="relative z-10 flex flex-col gap-12 text-white">
         <div className="flex flex-col gap-4">
