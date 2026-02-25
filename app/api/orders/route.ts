@@ -5,7 +5,7 @@ import { emailSchema, stellarAddressSchema } from "@/lib/validation";
 const CROSSMINT_SERVER_SIDE_API_KEY = process.env.CROSSMINT_SERVER_SIDE_API_KEY as string;
 const CROSSMINT_ENV = process.env.CROSSMINT_ENV || "staging";
 const USDC_STAGING = "stellar:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
-const USDC_PROD = "stellar:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
+const USDC_PROD = "solana:CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75";
 
 const orderRequestSchema = z.object({
   amount: z.string().refine((val) => {
