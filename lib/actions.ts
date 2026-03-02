@@ -29,7 +29,7 @@ export async function linkWallet(
         "x-api-key": SERVER_API_KEY,
       },
       body: JSON.stringify({
-        chainType: "solana",
+        chain: "solana",
       }),
     }
   );
