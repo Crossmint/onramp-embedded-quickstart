@@ -8,11 +8,18 @@ interface UserTypeSelectorProps {
   onUserTypeChange: (userType: "returning" | "new", email: string) => void;
 }
 
+function getSecureRandomString(length: number): string {
+  const bytes = new Uint8Array(length);
+  // Use the Web Crypto API for cryptographically secure randomness
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => (b % 36).toString(36)).join("");
+}
+
 export default function UserTypeSelector({ userType, onUserTypeChange }: UserTypeSelectorProps) {
   const handleUserTypeChange = (newUserType: "returning" | "new") => {
     if (userType !== newUserType) {
       if (newUserType === "new") {
-        const randomPart = Math.random().toString(36).slice(2, 10);
+        const randomPart = getSecureRandomString(8);
         const email = `demos+onramp-new-user-${randomPart}@crossmint.com`;
         onUserTypeChange(newUserType, email);
       } else {
