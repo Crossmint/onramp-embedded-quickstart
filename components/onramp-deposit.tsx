@@ -1,27 +1,23 @@
 "use client";
 
-import React from "react";
-import { Order } from "@/lib/types";
+import type { OnrampOrder } from "@/lib/types";
+import { LIGHT_KYC_THRESHOLD_USD } from "@/lib/config";
 import Tooltip from "@/components/tooltip";
 
 type Props = {
   amountUsd: string;
   setAmountUsd: (v: string) => void;
-  order: Order;
+  order: OnrampOrder;
   onContinue: () => void;
   children?: React.ReactNode;
   userType?: "returning" | "new";
 };
 
-// This number should match with the value of the environment variable
-// ONRAMP_LIGHT_KYC_THRESHOLD_USD
-const LIGHT_KYC_THRESHOLD_NUMBER = 100;
-
 function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | null; totalUsd: string | null }) {
   if (effectiveAmount === null || totalUsd === null) return null;
 
-  const addedToBalance = parseFloat(effectiveAmount);
-  const totalAmountUsd = parseFloat(totalUsd);
+  const addedToBalance = Number.parseFloat(effectiveAmount);
+  const totalAmountUsd = Number.parseFloat(totalUsd);
   const feesUsd = totalAmountUsd - addedToBalance;
 
   return (
@@ -35,7 +31,7 @@ function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | 
           <span className="text-gray-600 text-sm">Fees</span>
           <div className="flex items-center gap-2">
             {feesUsd <= 0.01 && (
-              <Tooltip 
+              <Tooltip
                 content="No fees in staging. Contact sales to discuss rates for production."
                 className="text-xs w-5 h-5 inline-flex items-center justify-center rounded-full border border-gray-300 text-gray-600 cursor-default"
               >
@@ -63,7 +59,7 @@ export default function OnrampDeposit({
   userType,
 }: Props) {
   const showKycMessage = userType === "new";
-  const isLightKyc = showKycMessage && Number(amountUsd) <= LIGHT_KYC_THRESHOLD_NUMBER;
+  const isLightKyc = showKycMessage && Number(amountUsd) <= LIGHT_KYC_THRESHOLD_USD;
 
   return (
     <div className="px-6">
@@ -99,6 +95,7 @@ export default function OnrampDeposit({
       {order.totalUsd == null && (
         <div className="mt-6">
           <button
+            type="button"
             className="bg-black text-white rounded-full px-5 py-2 text-sm w-full disabled:opacity-50"
             onClick={onContinue}
             disabled={order.status === "creating-order"}
@@ -110,5 +107,3 @@ export default function OnrampDeposit({
     </div>
   );
 }
-
-
