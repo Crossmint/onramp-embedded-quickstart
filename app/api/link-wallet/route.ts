@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
           "x-api-key": CROSSMINT_SERVER_SIDE_API_KEY,
         },
         body: JSON.stringify({
-          chainType: "stellar",
+          chain: "stellar",
         }),
       },
     );
