@@ -56,7 +56,7 @@ export default function FeatureHighlights() {
           "absolute rounded-[20px] inset-0 bg-black/40 transition-opacity duration-600 ease-out",
           showFeatures ? "opacity-100" : "opacity-0"
         )}
-      ></div>
+      />
 
       <div className="relative z-10 flex flex-col gap-12 text-white">
         <div className="flex flex-col gap-4">
@@ -70,11 +70,10 @@ export default function FeatureHighlights() {
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className={`flex items-start gap-5 p-4 backdrop-blur-sm rounded-2xl bg-blue-300/3 border border-white/10 transition-all duration-600 ease-out ${
-                showFeatures
+              className={`flex items-start gap-5 p-4 backdrop-blur-sm rounded-2xl bg-blue-300/3 border border-white/10 transition-all duration-600 ease-out ${showFeatures
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
-              }`}
+                }`}
               style={{
                 transitionDelay: showFeatures ? `${index * 150}ms` : "0ms",
               }}

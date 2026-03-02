@@ -1,11 +1,18 @@
-export type Order = {
-  status: "not-created" | "creating-order" | "awaiting-payment" | "error";
+export type OnrampStatus =
+  | "not-created"
+  | "creating-order"
+  | "awaiting-payment"
+  | "error";
+
+export type OnrampOrder = {
+  status: OnrampStatus;
   error: string | null;
   totalUsd: string | null;
   effectiveAmount: string | null;
 };
 
 // API Response Types
+
 export type CreateOrderResponse = {
   clientSecret: string;
   order: {
@@ -34,5 +41,5 @@ export type CreateOrderResponse = {
 
 export type ApiErrorResponse = {
   error: string;
-  details?: any;
+  details?: unknown;
 };

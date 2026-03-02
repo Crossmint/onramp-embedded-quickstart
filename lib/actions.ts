@@ -1,26 +1,27 @@
 "use server";
 
-import { CreateOrderResponse, ApiErrorResponse } from "./types";
+import type { CreateOrderResponse, ApiErrorResponse } from "@/lib/types";
+import { CROSSMINT_ENV, CROSSMINT_CLIENT_API_KEY, CROSSMINT_BASE_URL } from "@/lib/config";
 
-const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY!;
-const SERVER_API_KEY = process.env.CROSSMINT_SERVER_SIDE_API_KEY!;
-const CROSSMINT_ENV = process.env.NEXT_PUBLIC_CROSSMINT_ENV || "staging";
-const USDC_STAGING = "solana:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
-const USDC_PROD = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const SERVER_API_KEY = (() => {
+  const value = process.env.CROSSMINT_SERVER_SIDE_API_KEY;
+  if (value == null) throw new Error("CROSSMINT_SERVER_SIDE_API_KEY is not set");
+  return value;
+})();
+
+const USDC_LOCATOR =
+  CROSSMINT_ENV === "production"
+    ? "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+    : "solana:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 
 export async function linkWallet(
   email: string,
   walletAddress: string
-): Promise<void | ApiErrorResponse> {
-  const baseUrl =
-    CROSSMINT_ENV === "production"
-      ? "https://www.crossmint.com"
-      : "https://staging.crossmint.com";
-
+): Promise<ApiErrorResponse | undefined> {
   const userLocator = `email:${email}`;
 
   const res = await fetch(
-    `${baseUrl}/api/2025-06-09/users/${encodeURIComponent(userLocator)}/linked-wallets/${encodeURIComponent(walletAddress)}`,
+    `${CROSSMINT_BASE_URL}/api/2025-06-09/users/${encodeURIComponent(userLocator)}/linked-wallets/${encodeURIComponent(walletAddress)}`,
     {
       method: "PUT",
       headers: {
@@ -35,7 +36,7 @@ export async function linkWallet(
 
   if (!res.ok) {
     const data = await res.json();
-    return { error: data?.message || "Failed to link wallet" } as ApiErrorResponse;
+    return { error: data?.message || "Failed to link wallet" };
   }
 }
 
@@ -44,22 +45,16 @@ export async function createCrossmintOrder(
   email: string,
   walletAddress: string
 ): Promise<CreateOrderResponse | ApiErrorResponse> {
-  const baseUrl =
-    CROSSMINT_ENV === "production"
-      ? "https://www.crossmint.com"
-      : "https://staging.crossmint.com";
-  const tokenLocator = CROSSMINT_ENV === "production" ? USDC_PROD : USDC_STAGING;
-
-  const res = await fetch(`${baseUrl}/api/2022-06-09/orders`, {
+  const res = await fetch(`${CROSSMINT_BASE_URL}/api/2022-06-09/orders`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": CLIENT_API_KEY,
+      "x-api-key": CROSSMINT_CLIENT_API_KEY,
     },
     body: JSON.stringify({
       lineItems: [
         {
-          tokenLocator,
+          tokenLocator: USDC_LOCATOR,
           executionParameters: {
             mode: "exact-in",
             amount: amountUsd,

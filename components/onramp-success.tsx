@@ -9,8 +9,8 @@ type OnrampSuccessProps = {
 };
 
 function formatUsdc(amount: string): string {
-  const num = parseFloat(amount);
-  if (isNaN(num)) return amount;
+  const num = Number.parseFloat(amount);
+  if (Number.isNaN(num)) return amount;
   return num.toFixed(2);
 }
 
@@ -44,6 +44,7 @@ export default function OnrampSuccess({
               stroke="currentColor"
               viewBox="0 0 24 24"
               strokeWidth={2.5}
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -112,6 +113,7 @@ export default function OnrampSuccess({
             stroke="currentColor"
             viewBox="0 0 24 24"
             strokeWidth={2}
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -122,6 +124,7 @@ export default function OnrampSuccess({
         </a>
 
         <button
+          type="button"
           onClick={onStartNew}
           className="w-full py-2.5 px-4 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
         >

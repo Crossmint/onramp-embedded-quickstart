@@ -1,24 +1,16 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { CreateOrderResponse } from "./types";
-import { linkWallet, createCrossmintOrder } from "./actions";
-
-export type OnrampStatus =
-  | "not-created"
-  | "creating-order"
-  | "awaiting-payment"
-  | "error";
-
-type UseCrossmintOnrampArgs = {
-  email: string;
-  walletAddress: string;
-};
+import type { OnrampStatus, CreateOrderResponse } from "@/lib/types";
+import { linkWallet, createCrossmintOrder } from "@/lib/actions";
 
 export function useCrossmintOnramp({
   email,
   walletAddress,
-}: UseCrossmintOnrampArgs) {
+}: {
+  email: string;
+  walletAddress: string;
+}) {
   const [status, setStatus] = useState<OnrampStatus>("not-created");
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -70,12 +62,7 @@ export function useCrossmintOnramp({
   }, []);
 
   return {
-    order: {
-      status,
-      error,
-      totalUsd,
-      effectiveAmount,
-    },
+    order: { status, error, totalUsd, effectiveAmount },
     orderId,
     clientSecret,
     createOrder,
