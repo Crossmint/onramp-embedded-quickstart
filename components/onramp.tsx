@@ -1,25 +1,67 @@
 "use client";
 
-import { CrossmintProvider, CrossmintEmbeddedCheckout } from "@crossmint/client-sdk-react-ui";
+import {
+  CrossmintProvider,
+  CrossmintEmbeddedCheckout,
+  CrossmintCheckoutProvider,
+  useCrossmintCheckout,
+} from "@crossmint/client-sdk-react-ui";
 import OnrampDeposit from "@/components/onramp-deposit";
 import OnrampSuccess from "@/components/onramp-success";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import UserTypeSelector from "@/components/user-type-selector";
 import { Keypair } from "@solana/web3.js";
+import {
+  CROSSMINT_CLIENT_API_KEY,
+  RETURNING_USER_EMAIL,
+  RETURNING_USER_RECIPIENT_WALLET,
+  DEFAULT_AMOUNT,
+} from "@/lib/config";
 
-const CLIENT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY;
-if (CLIENT_API_KEY == null) {
-  throw new Error("NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY is not set");
+function CheckoutWithListener({
+  orderId,
+  clientSecret,
+  receiptEmail,
+  onCompleted,
+}: {
+  orderId: string;
+  clientSecret: string;
+  receiptEmail: string;
+  onCompleted: (txId?: string) => void;
+}) {
+  const { order } = useCrossmintCheckout();
+  const onCompletedRef = useRef(onCompleted);
+  onCompletedRef.current = onCompleted;
+
+  useEffect(() => {
+    if (order?.phase === "completed") {
+      const delivery = order.lineItems[0]?.delivery;
+      const txId = delivery?.status === "completed" ? delivery.txId : undefined;
+      onCompletedRef.current(txId);
+    }
+  }, [order]);
+
+  return (
+    <div className="max-w-[450px] w-full mx-auto">
+      <CrossmintEmbeddedCheckout
+        orderId={orderId}
+        clientSecret={clientSecret}
+        payment={{
+          receiptEmail,
+          crypto: { enabled: false },
+          fiat: { enabled: true },
+          defaultMethod: "fiat",
+        }}
+      />
+    </div>
+  );
 }
-
-const RETURNING_USER_RECIPIENT_WALLET = "GBmPTj6S4vvLV4xpYpRce1nnbR3NPyQUT4ZzxgPWt2aS";
-const DEFAULT_AMOUNT = "5.00";
 
 export default function Onramp() {
   const [userType, setUserType] = useState<"returning" | "new">("returning");
-  const [receiptEmail, setReceiptEmail] = useState<string>("demos+onramp-existing-user@crossmint.com");
-  const [recipientWalletAddress, setRecipientWalletAddress] = useState<string>(RETURNING_USER_RECIPIENT_WALLET);
+  const [receiptEmail, setReceiptEmail] = useState(RETURNING_USER_EMAIL);
+  const [recipientWalletAddress, setRecipientWalletAddress] = useState(RETURNING_USER_RECIPIENT_WALLET);
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -29,23 +71,6 @@ export default function Onramp() {
     email: receiptEmail,
     walletAddress: recipientWalletAddress,
   });
-
-  // Listen for Crossmint iframe postMessage events to detect order completion
-  const handleMessage = useCallback((event: MessageEvent) => {
-    const data = event.data;
-    if (data?.event === "order:updated" && data?.data?.order?.phase === "completed") {
-      const lineItems = data.data.order.lineItems;
-      const deliveryTxId = lineItems?.[0]?.delivery?.txId;
-      if (deliveryTxId) setTxId(deliveryTxId);
-      setShowSuccess(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!orderId) return;
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [orderId, handleMessage]);
 
   return (
     <div className="flex items-center justify-center bg-gray-50 px-6 py-12 col-span-1 lg:col-span-3">
@@ -73,42 +98,35 @@ export default function Onramp() {
                 <OnrampDeposit
                   amountUsd={amountUsd}
                   setAmountUsd={setAmountUsd}
-                  order={{
-                    status: order.status,
-                    error: order.error,
-                    totalUsd: order.totalUsd,
-                    effectiveAmount: order.effectiveAmount,
-                  }}
+                  order={order}
                   onContinue={() => createOrder(amountUsd)}
                   userType={userType}
                 />
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
-              {orderId && !showSuccess && (<>
+              {orderId && clientSecret && !showSuccess && (<>
                 <div>
                   <p className="text-sm text-center">Use this card to test the payment process:</p>
                   <p className="text-sm font-semibold filter-green text-center">4242 4242 4242 4242.</p>
                 </div>
                 <hr className="mt-4 mb-4" />
-                <CrossmintProvider apiKey={CLIENT_API_KEY!}>
-                  <div className="max-w-[450px] w-full mx-auto">
-                    <CrossmintEmbeddedCheckout
+                <CrossmintProvider apiKey={CROSSMINT_CLIENT_API_KEY}>
+                  <CrossmintCheckoutProvider>
+                    <CheckoutWithListener
                       orderId={orderId}
-                      // @ts-ignore
                       clientSecret={clientSecret}
-                      payment={{
-                        receiptEmail,
-                        crypto: { enabled: false },
-                        fiat: { enabled: true },
-                        defaultMethod: "fiat",
+                      receiptEmail={receiptEmail}
+                      onCompleted={(deliveryTxId) => {
+                        if (deliveryTxId) setTxId(deliveryTxId);
+                        setShowSuccess(true);
                       }}
                     />
-                  </div>
+                  </CrossmintCheckoutProvider>
                 </CrossmintProvider>
               </>)}
 
-              {/* Step 3: Custom success screen (replaces Crossmint's built-in one) */}
+              {/* Step 3: Custom success screen */}
               {showSuccess && (
                 <OnrampSuccess
                   totalUsd={order.totalUsd ?? amountUsd}
@@ -121,7 +139,7 @@ export default function Onramp() {
                     resetOrder();
                     setAmountUsd(DEFAULT_AMOUNT);
                     setUserType("returning");
-                    setReceiptEmail("demos+onramp-existing-user@crossmint.com");
+                    setReceiptEmail(RETURNING_USER_EMAIL);
                     setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
                   }}
                 />
