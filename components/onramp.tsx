@@ -108,7 +108,14 @@ export default function Onramp() {
               {orderId && clientSecret && !showSuccess && (<>
                 <div>
                   <p className="text-sm text-center">Use this card to test the payment process:</p>
-                  <p className="text-sm font-semibold filter-green text-center">4242 4242 4242 4242</p>
+                  <p className="text-sm font-semibold filter-green text-center">
+                    {userType === "new" ? "4000 0200 0000 0000" : "4242 4242 4242 4242"}
+                  </p>
+                  {userType === "new" && (
+                    <p className="text-xs text-gray-500 text-center mt-1">
+                      US card for US KYC user. Use 4242 4242 4242 4242 for non-US.
+                    </p>
+                  )}
                 </div>
                 <hr className="mt-4 mb-4" />
                 <CrossmintProvider apiKey={CROSSMINT_CLIENT_API_KEY}>
