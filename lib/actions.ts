@@ -1,7 +1,7 @@
 "use server";
 
 import type { CreateOrderResponse, ApiErrorResponse } from "@/lib/types";
-import { CROSSMINT_ENV, CROSSMINT_CLIENT_API_KEY, CROSSMINT_BASE_URL } from "@/lib/config";
+import { CROSSMINT_ENV, CROSSMINT_BASE_URL } from "@/lib/config";
 
 const SERVER_API_KEY = (() => {
   const value = process.env.CROSSMINT_SERVER_SIDE_API_KEY;
@@ -49,7 +49,7 @@ export async function createCrossmintOrder(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": CROSSMINT_CLIENT_API_KEY,
+      "x-api-key": SERVER_API_KEY,
     },
     body: JSON.stringify({
       lineItems: [
