@@ -28,7 +28,7 @@ Create and fund a crypto wallet using Crossmint Onramp with embedded checkout. T
 ## Deploy
 Easily deploy the template to Vercel with the button below. You will need to set the required environment variables in the Vercel dashboard.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCrossmint%2Fonramp-embedded-quickstart&env=NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY,NEXT_PUBLIC_CROSSMINT_ENV)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCrossmint%2Fonramp-embedded-quickstart&env=NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY,CROSSMINT_SERVER_SIDE_API_KEY,NEXT_PUBLIC_CROSSMINT_ENV)
 
 ## Setup
 1. Clone the repository and navigate to the project folder:
@@ -52,8 +52,11 @@ bun install
 cp .env.template .env
 ```
 
-4. Get a Crossmint [client-side API key](https://docs.crossmint.com/introduction/platform/api-keys/client-side) and add it to the `.env` file. Ensure it has the scopes: `orders.read` and `orders.create`. In staging environment, all scopes are enabled by default. The following variables are used by this project:
+4. Get your Crossmint API keys and add them to the `.env` file. In staging environment, all scopes are enabled by default. This project requires two keys:
+   - A [server-side API key](https://docs.crossmint.com/introduction/platform/api-keys/server-side) for creating onramp orders, with scopes `orders.read` and `orders.create`.
+   - A [client-side API key](https://docs.crossmint.com/introduction/platform/api-keys/client-side) for the embedded checkout component.
 ```bash
+CROSSMINT_SERVER_SIDE_API_KEY=your_server_api_key
 NEXT_PUBLIC_CROSSMINT_CLIENT_SIDE_API_KEY=your_client_api_key
 
 # staging | production
@@ -72,10 +75,10 @@ bun dev
 ```
 
 ## Using in production
-1. Create a [production client-side API key](https://docs.crossmint.com/introduction/platform/api-keys/client-side) and set `NEXT_PUBLIC_CROSSMINT_ENV=production`.
+1. Create production [server-side](https://docs.crossmint.com/introduction/platform/api-keys/server-side) and [client-side](https://docs.crossmint.com/introduction/platform/api-keys/client-side) API keys and set `NEXT_PUBLIC_CROSSMINT_ENV=production`.
 
 ## How it works
-1. **Order Creation**: The app creates an onramp order directly via the Crossmint Orders API using the client-side API key
+1. **Order Creation**: The app creates an onramp order server-side via the Crossmint Orders API using the server-side API key
 2. **Embedded Checkout**: Once the order is created, pass the orderId and clientSecret information to the Crossmint's embedded checkout component, which handles:
    - KYC verification (when required)
    - Payment collection
