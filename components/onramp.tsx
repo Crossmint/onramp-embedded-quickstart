@@ -61,16 +61,19 @@ function CheckoutWithListener({
 export default function Onramp() {
   const [userType, setUserType] = useState<"returning" | "new">("returning");
   const [receiptEmail, setReceiptEmail] = useState(RETURNING_USER_EMAIL);
-  const [recipientWalletAddress, setRecipientWalletAddress] = useState(RETURNING_USER_RECIPIENT_WALLET);
+  const [recipientWalletAddress, setRecipientWalletAddress] = useState(
+    RETURNING_USER_RECIPIENT_WALLET
+  );
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
   const [showSuccess, setShowSuccess] = useState(false);
   const [txId, setTxId] = useState<string | undefined>();
 
-  const { order, createOrder, orderId, clientSecret, resetOrder } = useCrossmintOnramp({
-    email: receiptEmail,
-    walletAddress: recipientWalletAddress,
-  });
+  const { order, createOrder, orderId, clientSecret, resetOrder } =
+    useCrossmintOnramp({
+      email: receiptEmail,
+      walletAddress: recipientWalletAddress,
+    });
 
   return (
     <div className="flex items-center justify-center bg-gray-50 px-6 py-12 col-span-1 lg:col-span-3">
@@ -89,6 +92,9 @@ export default function Onramp() {
                   } else {
                     setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
                   }
+                  setShowSuccess(false);
+                  setTxId(undefined);
+                  setAmountUsd(DEFAULT_AMOUNT);
                   resetOrder();
                 }}
               />
@@ -105,33 +111,56 @@ export default function Onramp() {
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
-              {orderId && clientSecret && !showSuccess && (<>
-                <div>
-                  <p className="text-sm text-center">Use this card to test the payment process:</p>
-                  <p className="text-sm font-semibold filter-green text-center">
-                    {userType === "new" ? "4000 0200 0000 0000" : "4242 4242 4242 4242"}
-                  </p>
-                  {userType === "new" && (
-                    <p className="text-xs text-gray-500 text-center mt-1">
-                      US card for US KYC user. Use 4242 4242 4242 4242 for non-US.
-                    </p>
-                  )}
-                </div>
-                <hr className="mt-4 mb-4" />
-                <CrossmintProvider apiKey={CROSSMINT_CLIENT_API_KEY}>
-                  <CrossmintCheckoutProvider>
-                    <CheckoutWithListener
-                      orderId={orderId}
-                      clientSecret={clientSecret}
-                      receiptEmail={receiptEmail}
-                      onCompleted={(deliveryTxId) => {
-                        if (deliveryTxId) setTxId(deliveryTxId);
-                        setShowSuccess(true);
-                      }}
-                    />
-                  </CrossmintCheckoutProvider>
-                </CrossmintProvider>
-              </>)}
+              {orderId && clientSecret && !showSuccess && (
+                <>
+                  <div>
+                    {userType === "new" ? (
+                      <>
+                        <p className="text-sm text-center">
+                          Use the test card for your region:
+                        </p>
+                        <div className="text-sm text-center mt-1">
+                          <p>
+                            <span className="text-gray-500">US</span>{" "}
+                            <span className="font-semibold filter-green">
+                              4000 0200 0000 0000
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Non-US</span>{" "}
+                            <span className="font-semibold filter-green">
+                              4242 4242 4242 4242
+                            </span>
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-center">
+                          Use this card to test the payment process:
+                        </p>
+                        <p className="text-sm font-semibold filter-green text-center">
+                          4000 0200 0000 0000
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <hr className="mt-4 mb-4" />
+                  <CrossmintProvider apiKey={CROSSMINT_CLIENT_API_KEY}>
+                    <CrossmintCheckoutProvider>
+                      <CheckoutWithListener
+                        orderId={orderId}
+                        clientSecret={clientSecret}
+                        receiptEmail={receiptEmail}
+                        onCompleted={(deliveryTxId) => {
+                          if (deliveryTxId) setTxId(deliveryTxId);
+                          setShowSuccess(true);
+                        }}
+                      />
+                    </CrossmintCheckoutProvider>
+                  </CrossmintProvider>
+                </>
+              )}
 
               {/* Step 3: Custom success screen */}
               {showSuccess && (
