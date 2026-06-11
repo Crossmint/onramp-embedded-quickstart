@@ -9,9 +9,9 @@ import {
 import OnrampDeposit from "@/components/onramp-deposit";
 import OnrampSuccess from "@/components/onramp-success";
 import { useCrossmintOnramp } from "@/lib/useCrossmintOnramp";
+import { prepareStellarWallet } from "@/lib/actions";
 import { useState, useEffect, useRef } from "react";
 import UserTypeSelector from "@/components/user-type-selector";
-import { Keypair } from "@solana/web3.js";
 import {
   CROSSMINT_CLIENT_API_KEY,
   RETURNING_USER_EMAIL,
@@ -58,16 +58,39 @@ function CheckoutWithListener({
   );
 }
 
+type WalletPrep =
+  | { status: "static" }
+  | { status: "preparing" }
+  | { status: "ready"; secret: string }
+  | { status: "error"; message: string };
+
 export default function Onramp() {
   const [userType, setUserType] = useState<"returning" | "new">("returning");
   const [receiptEmail, setReceiptEmail] = useState(RETURNING_USER_EMAIL);
   const [recipientWalletAddress, setRecipientWalletAddress] = useState(
     RETURNING_USER_RECIPIENT_WALLET
   );
+  const [walletPrep, setWalletPrep] = useState<WalletPrep>({ status: "static" });
+  const prepIdRef = useRef(0);
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
   const [showSuccess, setShowSuccess] = useState(false);
   const [txId, setTxId] = useState<string | undefined>();
+
+  const startWalletPrep = () => {
+    const prepId = ++prepIdRef.current;
+    setRecipientWalletAddress("");
+    setWalletPrep({ status: "preparing" });
+    prepareStellarWallet().then((result) => {
+      if (prepIdRef.current !== prepId) return;
+      if ("error" in result) {
+        setWalletPrep({ status: "error", message: result.error });
+      } else {
+        setRecipientWalletAddress(result.publicKey);
+        setWalletPrep({ status: "ready", secret: result.secret });
+      }
+    });
+  };
 
   const { order, createOrder, orderId, clientSecret, resetOrder } =
     useCrossmintOnramp({
@@ -86,16 +109,17 @@ export default function Onramp() {
                 onUserTypeChange={(newType, email) => {
                   setUserType(newType);
                   setReceiptEmail(email);
-                  if (newType === "new") {
-                    const wallet = Keypair.generate();
-                    setRecipientWalletAddress(wallet.publicKey.toBase58());
-                  } else {
-                    setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
-                  }
                   setShowSuccess(false);
                   setTxId(undefined);
                   setAmountUsd(DEFAULT_AMOUNT);
                   resetOrder();
+                  if (newType === "new") {
+                    startWalletPrep();
+                  } else {
+                    prepIdRef.current++;
+                    setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
+                    setWalletPrep({ status: "static" });
+                  }
                 }}
               />
 
@@ -107,43 +131,79 @@ export default function Onramp() {
                   order={order}
                   onContinue={() => createOrder(amountUsd)}
                   userType={userType}
-                />
+                  disabled={userType === "new" && walletPrep.status !== "ready"}
+                >
+                  {userType === "new" && (
+                    <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                      {walletPrep.status === "preparing" && (
+                        <p className="text-gray-600 text-center">
+                          Preparing a Stellar testnet wallet (friendbot funding +
+                          USDC trustline)...
+                        </p>
+                      )}
+                      {walletPrep.status === "error" && (
+                        <div className="text-center">
+                          <p className="text-red-600">
+                            Wallet setup failed: {walletPrep.message}
+                          </p>
+                          <button
+                            type="button"
+                            className="underline mt-1 text-gray-700"
+                            onClick={startWalletPrep}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      )}
+                      {walletPrep.status === "ready" && (
+                        <div>
+                          <p className="text-gray-600">Recipient wallet (generated):</p>
+                          <p className="font-mono text-xs break-all mt-1">
+                            {recipientWalletAddress}
+                          </p>
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-gray-600">
+                              Secret key (import into a Stellar wallet to see the USDC
+                              arrive)
+                            </summary>
+                            <p className="font-mono text-xs break-all mt-1">
+                              {walletPrep.secret}
+                            </p>
+                          </details>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </OnrampDeposit>
               )}
 
               {/* Step 2: Pay for existing order via embedded checkout */}
               {orderId && clientSecret && !showSuccess && (
                 <>
                   <div>
-                    {userType === "new" ? (
-                      <>
-                        <p className="text-sm text-center">
-                          Use the test card for your region:
-                        </p>
-                        <div className="text-sm text-center mt-1">
-                          <p>
-                            <span className="text-gray-500">US</span>{" "}
-                            <span className="font-semibold filter-green">
-                              4000 0200 0000 0000
-                            </span>
-                          </p>
-                          <p>
-                            <span className="text-gray-500">Non-US</span>{" "}
-                            <span className="font-semibold filter-green">
-                              4242 4242 4242 4242
-                            </span>
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-center">
-                          Use this card to test the payment process:
-                        </p>
-                        <p className="text-sm font-semibold filter-green text-center">
+                    <p className="text-sm text-center">
+                      Use the test card for your region:
+                    </p>
+                    <div className="text-sm text-center mt-1">
+                      <p>
+                        <span className="text-gray-500">US (debit)</span>{" "}
+                        <span className="font-semibold filter-green">
+                          5200 8282 8282 8210
+                        </span>
+                      </p>
+                      <p>
+                        <span className="text-gray-500">US</span>{" "}
+                        <span className="font-semibold filter-green">
                           4000 0200 0000 0000
-                        </p>
-                      </>
-                    )}
+                        </span>
+                      </p>
+                      <p>
+                        <span className="text-gray-500">Non-US</span>{" "}
+                        <span className="font-semibold filter-green">
+                          4242 4242 4242 4242
+                        </span>
+                      </p>
+                    </div>
                   </div>
                   <hr className="mt-4 mb-4" />
                   <CrossmintProvider apiKey={CROSSMINT_CLIENT_API_KEY}>

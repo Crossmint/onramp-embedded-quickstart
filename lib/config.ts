@@ -16,6 +16,6 @@ export const CROSSMINT_BASE_URL =
 // Demo constants
 
 export const RETURNING_USER_EMAIL = "demos+onramp-existing-user@crossmint.com";
-export const RETURNING_USER_RECIPIENT_WALLET = "GBmPTj6S4vvLV4xpYpRce1nnbR3NPyQUT4ZzxgPWt2aS";
+export const RETURNING_USER_RECIPIENT_WALLET = "GA7XO5XXX5A7CK74M7ZF4XJJTSJ2ENHNUCAEU5M73OKW7FSIG4IU5I2J";
 export const DEFAULT_AMOUNT = "5.00";
 export const LIGHT_KYC_THRESHOLD_USD = 100;

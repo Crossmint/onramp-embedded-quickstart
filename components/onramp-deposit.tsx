@@ -11,6 +11,7 @@ type Props = {
   onContinue: () => void;
   children?: React.ReactNode;
   userType?: "returning" | "new";
+  disabled?: boolean;
 };
 
 function PricingInfo({ effectiveAmount, totalUsd }: { effectiveAmount: string | null; totalUsd: string | null }) {
@@ -57,6 +58,7 @@ export default function OnrampDeposit({
   onContinue,
   children,
   userType,
+  disabled = false,
 }: Props) {
   const showKycMessage = userType === "new";
   const isLightKyc = showKycMessage && Number(amountUsd) <= LIGHT_KYC_THRESHOLD_USD;
@@ -90,6 +92,10 @@ export default function OnrampDeposit({
         </div>
       )}
 
+      {order.status === "error" && order.error != null && (
+        <p className="mt-4 text-sm text-red-600 text-center break-words">{order.error}</p>
+      )}
+
       <PricingInfo effectiveAmount={order.effectiveAmount} totalUsd={order.totalUsd} />
 
       {order.totalUsd == null && (
@@ -98,7 +104,7 @@ export default function OnrampDeposit({
             type="button"
             className="bg-black text-white rounded-full px-5 py-2 text-sm w-full disabled:opacity-50"
             onClick={onContinue}
-            disabled={order.status === "creating-order"}
+            disabled={disabled || order.status === "creating-order"}
           >
             {order.status === "creating-order" ? "Creating order..." : "Continue"}
           </button>

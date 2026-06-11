@@ -1,5 +1,7 @@
 "use client";
 
+import { CROSSMINT_ENV } from "@/lib/config";
+
 type OnrampSuccessProps = {
   totalUsd: string;
   effectiveAmount: string;
@@ -26,9 +28,12 @@ export default function OnrampSuccess({
   txId,
   onStartNew,
 }: OnrampSuccessProps) {
-  const explorerUrl = txId
-    ? `https://explorer.solana.com/tx/${txId}?cluster=devnet`
-    : `https://explorer.solana.com/address/${walletAddress}?cluster=devnet`;
+  const stellarExpertBase =
+    CROSSMINT_ENV === "production"
+      ? "https://stellar.expert/explorer/public"
+      : "https://stellar.expert/explorer/testnet";
+  const deliveredToUrl = `${stellarExpertBase}/account/${walletAddress}`;
+  const explorerUrl = txId ? `${stellarExpertBase}/tx/${txId}` : deliveredToUrl;
   const formattedUsdc = formatUsdc(effectiveAmount);
   const formattedUsd = formatUsdc(totalUsd);
 
@@ -88,7 +93,7 @@ export default function OnrampSuccess({
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500">Delivered to</span>
           <a
-            href={explorerUrl}
+            href={deliveredToUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-mono text-green-600 hover:text-green-700 hover:underline transition-colors"

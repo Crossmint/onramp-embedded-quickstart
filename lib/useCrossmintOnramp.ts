@@ -22,32 +22,39 @@ export function useCrossmintOnramp({
     async (amountUsd: string) => {
       setStatus("creating-order");
 
-      const linkResult = await linkWallet(email, walletAddress);
-      if (linkResult && "error" in linkResult) {
-        setError(linkResult.error);
+      try {
+        const linkResult = await linkWallet(email, walletAddress);
+        if (linkResult && "error" in linkResult) {
+          setError(linkResult.error);
+          setStatus("error");
+          return;
+        }
+
+        const data = await createCrossmintOrder(amountUsd, email, walletAddress);
+
+        if ("error" in data) {
+          setError(data.error);
+          setStatus("error");
+          return;
+        }
+
+        const orderData = data as CreateOrderResponse;
+        setOrderId(orderData.order.orderId);
+        setClientSecret(orderData.clientSecret);
+
+        const total = orderData.order.quote.totalPrice.amount;
+        const lineItem = orderData.order.lineItems[0];
+        const effective = lineItem.quote.quantityRange.lowerBound;
+        setTotalUsd(total);
+        setEffectiveAmount(effective);
+
+        setStatus("awaiting-payment");
+      } catch (e) {
+        // Server action transport failures (e.g. stale action refs after HMR)
+        // previously left the button stuck on "Creating order..." forever.
+        setError(e instanceof Error ? e.message : "Unexpected error creating the order");
         setStatus("error");
-        return;
       }
-
-      const data = await createCrossmintOrder(amountUsd, email, walletAddress);
-
-      if ("error" in data) {
-        setError(data.error);
-        setStatus("error");
-        return;
-      }
-
-      const orderData = data as CreateOrderResponse;
-      setOrderId(orderData.order.orderId);
-      setClientSecret(orderData.clientSecret);
-
-      const total = orderData.order.quote.totalPrice.amount;
-      const lineItem = orderData.order.lineItems[0];
-      const effective = lineItem.quote.quantityRange.lowerBound;
-      setTotalUsd(total);
-      setEffectiveAmount(effective);
-
-      setStatus("awaiting-payment");
     },
     [email, walletAddress]
   );
