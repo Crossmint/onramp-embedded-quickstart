@@ -117,22 +117,11 @@ export default function Onramp() {
                     {userType === "new" ? (
                       <>
                         <p className="text-sm text-center">
-                          Use the test card for your region:
+                          Use this test card to complete the payment:
                         </p>
-                        <div className="text-sm text-center mt-1">
-                          <p>
-                            <span className="text-gray-500">US</span>{" "}
-                            <span className="font-semibold filter-green">
-                              4000 0200 0000 0000
-                            </span>
-                          </p>
-                          <p>
-                            <span className="text-gray-500">Non-US</span>{" "}
-                            <span className="font-semibold filter-green">
-                              4242 4242 4242 4242
-                            </span>
-                          </p>
-                        </div>
+                        <p className="text-sm font-semibold filter-green text-center">
+                          4000 0200 0000 0000
+                        </p>
                       </>
                     ) : (
                       <>
