@@ -117,10 +117,19 @@ export default function Onramp() {
                     {userType === "new" ? (
                       <>
                         <p className="text-sm text-center">
-                          Use this test card to complete the payment:
+                          Use one of these test cards to complete the payment:
                         </p>
-                        <p className="text-sm font-semibold filter-green text-center">
-                          4000 0200 0000 0000
+                        <p className="text-sm text-center">
+                          Non-US KYC:{" "}
+                          <span className="font-semibold filter-green">
+                            4242 4242 4242 4242
+                          </span>
+                        </p>
+                        <p className="text-sm text-center">
+                          US KYC:{" "}
+                          <span className="font-semibold filter-green">
+                            4000 0200 0000 0000
+                          </span>
                         </p>
                       </>
                     ) : (
