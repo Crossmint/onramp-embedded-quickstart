@@ -59,15 +59,24 @@ function CheckoutWithListener({
 }
 
 export default function Onramp() {
-  const [userType, setUserType] = useState<"returning" | "new">("returning");
-  const [receiptEmail, setReceiptEmail] = useState(RETURNING_USER_EMAIL);
-  const [recipientWalletAddress, setRecipientWalletAddress] = useState(
-    RETURNING_USER_RECIPIENT_WALLET
-  );
+  // TODO: Re-enable returning user flow once Persona data is fixed (missing phone number for US resident)
+  const [userType, setUserType] = useState<"returning" | "new">("new");
+  const [receiptEmail, setReceiptEmail] = useState("");
+  const [recipientWalletAddress, setRecipientWalletAddress] = useState("");
 
   const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT);
   const [showSuccess, setShowSuccess] = useState(false);
   const [txId, setTxId] = useState<string | undefined>();
+
+  // Generate random email and wallet for new user on mount
+  useEffect(() => {
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    const randomPart = Array.from(bytes, (b) => (b % 36).toString(36)).join("");
+    setReceiptEmail(`demos+onramp-new-user-${randomPart}@crossmint.com`);
+    const wallet = Keypair.generate();
+    setRecipientWalletAddress(wallet.publicKey.toBase58());
+  }, []);
 
   const { order, createOrder, orderId, clientSecret, resetOrder } =
     useCrossmintOnramp({
@@ -81,6 +90,7 @@ export default function Onramp() {
         <div className="bg-white rounded-3xl border shadow-lg overflow-hidden">
           <div className="p-6">
             <div className="flex flex-col">
+              {/* TODO: Re-enable returning user tab once Persona data is fixed (missing phone number for US resident)
               <UserTypeSelector
                 userType={userType}
                 onUserTypeChange={(newType, email) => {
@@ -97,7 +107,7 @@ export default function Onramp() {
                   setAmountUsd(DEFAULT_AMOUNT);
                   resetOrder();
                 }}
-              />
+              /> */}
 
               {/* Step 1: Create order */}
               {orderId == null && !showSuccess && (
@@ -114,34 +124,21 @@ export default function Onramp() {
               {orderId && clientSecret && !showSuccess && (
                 <>
                   <div>
-                    {userType === "new" ? (
-                      <>
-                        <p className="text-sm text-center">
-                          Use one of these test cards to complete the payment:
-                        </p>
-                        <p className="text-sm text-center">
-                          Non-US KYC:{" "}
-                          <span className="font-semibold filter-green">
-                            4242 4242 4242 4242
-                          </span>
-                        </p>
-                        <p className="text-sm text-center">
-                          US KYC:{" "}
-                          <span className="font-semibold filter-green">
-                            4000 0200 0000 0000
-                          </span>
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-center">
-                          Use this card to test the payment process:
-                        </p>
-                        <p className="text-sm font-semibold filter-green text-center">
-                          4000 0200 0000 0000
-                        </p>
-                      </>
-                    )}
+                    <p className="text-sm text-center">
+                      Use one of these test cards to complete the payment:
+                    </p>
+                    <p className="text-sm text-center">
+                      Non-US KYC:{" "}
+                      <span className="font-semibold filter-green">
+                        4242 4242 4242 4242
+                      </span>
+                    </p>
+                    <p className="text-sm text-center">
+                      US KYC:{" "}
+                      <span className="font-semibold filter-green">
+                        4000 0200 0000 0000
+                      </span>
+                    </p>
                   </div>
                   <hr className="mt-4 mb-4" />
                   <CrossmintProvider apiKey={CROSSMINT_CLIENT_API_KEY}>
@@ -172,9 +169,13 @@ export default function Onramp() {
                     setTxId(undefined);
                     resetOrder();
                     setAmountUsd(DEFAULT_AMOUNT);
-                    setUserType("returning");
-                    setReceiptEmail(RETURNING_USER_EMAIL);
-                    setRecipientWalletAddress(RETURNING_USER_RECIPIENT_WALLET);
+                    // Generate fresh email and wallet for next new user flow
+                    const bytes = new Uint8Array(8);
+                    crypto.getRandomValues(bytes);
+                    const randomPart = Array.from(bytes, (b) => (b % 36).toString(36)).join("");
+                    setReceiptEmail(`demos+onramp-new-user-${randomPart}@crossmint.com`);
+                    const wallet = Keypair.generate();
+                    setRecipientWalletAddress(wallet.publicKey.toBase58());
                   }}
                 />
               )}
